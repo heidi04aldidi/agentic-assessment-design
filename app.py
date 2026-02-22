@@ -82,3 +82,74 @@ if "questions_df" not in st.session_state:
     st.session_state.questions_df = None
 if "responses_df" not in st.session_state:
     st.session_state.responses_df = None
+
+
+# ══════════════════════════════════════════════
+# PAGE: Home
+# ══════════════════════════════════════════════
+if page == "🏠 Home":
+    st.markdown('<p class="main-header">📝 Intelligent Exam Question Analysis</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">AI-driven system to assess exam question quality, difficulty, and student performance patterns.</p>', unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        <div class="metric-card">
+            <h3>📤</h3>
+            <p>Upload exam questions & student responses</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+        <div class="metric-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3>📊</h3>
+            <p>Analyze difficulty & quality classifications</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown("""
+        <div class="metric-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <h3>📈</h3>
+            <p>Visualize performance trends & insights</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    st.subheader("🔑 Key Features")
+    features = {
+        "Question Difficulty Prediction": "Classify questions as Easy, Medium, or Hard using Logistic Regression.",
+        "Student Performance Patterns": "Analyze how students respond to each question.",
+        "Text Feature Extraction": "TF-IDF based feature extraction from question text.",
+        "Model Evaluation": "Accuracy, Precision, Recall & Confusion Matrix for Logistic Regression.",
+        "Visual Insights": "Interactive charts for question-wise performance trends.",
+    }
+    for title, desc in features.items():
+        st.markdown(f"""
+        <div class="card">
+            <strong>{title}</strong><br/>
+            <span style="color:#666">{desc}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.subheader("📐 System Architecture")
+    st.markdown("""
+    ```
+    ┌──────────────┐    ┌──────────────────┐    ┌─────────────────┐
+    │  Raw Data     │───▶│  Preprocessing   │───▶│ Feature         │
+    │  (CSV Upload) │    │  & Text Cleaning │    │ Extraction      │
+    └──────────────┘    └──────────────────┘    │ (TF-IDF)        │
+                                                 └────────┬────────┘
+                                                          │
+                         ┌──────────────────┐    ┌────────▼────────┐
+                         │ Difficulty        │◀───│ Logistic        │
+                         │ Classification    │    │ Regression      │
+                         └────────┬─────────┘    └─────────────────┘
+                                  │
+                         ┌────────▼─────────┐
+                         │  Dashboard &      │
+                         │  Visualizations   │
+                         └──────────────────┘
+    ```
+    """)
