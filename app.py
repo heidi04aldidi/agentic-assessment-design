@@ -153,3 +153,39 @@ if page == "🏠 Home":
                          └──────────────────┘
     ```
     """)
+
+# ══════════════════════════════════════════════
+# PAGE: Upload Data
+# ══════════════════════════════════════════════
+elif page == "📤 Upload Data":
+    st.markdown('<p class="main-header">📤 Upload Data</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Upload your exam questions and student response data (CSV format).</p>', unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("📝 Exam Questions")
+        st.caption("Expected columns: `Id`, `Title`, `Body`, `Score`, `Tags` (or similar)")
+        questions_file = st.file_uploader("Upload Questions CSV", type=["csv"], key="q_upload")
+        if questions_file is not None:
+            st.session_state.questions_df = pd.read_csv(questions_file, encoding="latin1", nrows=5000)
+            st.success(f"✅ Loaded {len(st.session_state.questions_df)} questions!")
+            st.dataframe(st.session_state.questions_df.head(10), use_container_width=True)
+
+    with col2:
+        st.subheader("👨‍🎓 Student Responses / Answers")
+        st.caption("Expected columns: `Id`, `ParentId`, `Body`, `Score` (or similar)")
+        responses_file = st.file_uploader("Upload Responses CSV", type=["csv"], key="r_upload")
+        if responses_file is not None:
+            st.session_state.responses_df = pd.read_csv(responses_file, encoding="latin1", nrows=5000)
+            st.success(f"✅ Loaded {len(st.session_state.responses_df)} responses!")
+            st.dataframe(st.session_state.responses_df.head(10), use_container_width=True)
+
+    st.markdown("---")
+    if st.session_state.questions_df is not None:
+        st.subheader("📋 Questions Data Summary")
+        st.write(st.session_state.questions_df.describe())
+    if st.session_state.responses_df is not None:
+        st.subheader("📋 Responses Data Summary")
+        st.write(st.session_state.responses_df.describe())
+
