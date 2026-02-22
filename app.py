@@ -2,6 +2,16 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import joblib
+import os
+import re
+import html
+from bs4 import BeautifulSoup
+
+import nltk
+from nltk.corpus import stopwords
+nltk.download("stopwords", quiet=True)
+stop_words = set(stopwords.words("english"))
 
 # ──────────────────────────────────────────────
 # Page Config
@@ -82,6 +92,24 @@ if "questions_df" not in st.session_state:
     st.session_state.questions_df = None
 if "responses_df" not in st.session_state:
     st.session_state.responses_df = None
+
+
+# ══════════════════════════════════════════════
+# Helper: clean text (same pipeline as notebook)
+# ══════════════════════════════════════════════
+def clean_text_pipeline(text):
+    if pd.isna(text) or not isinstance(text, str):
+        return ""
+    text = html.unescape(text)
+    try:
+        text = BeautifulSoup(text, "html.parser").get_text()
+    except Exception:
+        return ""
+    text = text.lower()
+    text = re.sub(r"[^a-z\s]", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    tokens = [w for w in text.split() if w not in stop_words]
+    return " ".join(tokens).strip()
 
 
 # ══════════════════════════════════════════════
@@ -392,6 +420,8 @@ elif page == "📈 Visualizations":
         st.info("👈 Please upload questions data first from the **Upload Data** page.")
 
 
+
+
 # ══════════════════════════════════════════════
 # PAGE: Model Evaluation
 # ══════════════════════════════════════════════
@@ -406,42 +436,72 @@ elif page == "🤖 Model Evaluation":
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    # Try loading saved model
+    MODEL_PATH = "models/logistic_regression_model.pkl"
+    VECTORIZER_PATH = "models/tfidf_vectorizer.pkl"
 
-    # Placeholder model metrics (these would come from saved model results)
-    st.subheader("📊 Logistic Regression Metrics")
-    st.caption("These are placeholder values — replace with real metrics once the model is trained.")
+    if os.path.exists(MODEL_PATH) and os.path.exists(VECTORIZER_PATH):
+        model = joblib.load(MODEL_PATH)
+        tfidf_vec = joblib.load(VECTORIZER_PATH)
 
-    metrics_lr = pd.DataFrame({
-        "Metric": ["Accuracy", "Precision (Macro)", "Recall (Macro)", "F1-Score (Macro)"],
-        "Value": ["--", "--", "--", "--"],
-    })
-    st.table(metrics_lr)
+        st.success("✅ Trained model loaded successfully!")
 
-    st.markdown("---")
+        st.markdown("---")
 
-    st.subheader("🔄 Confusion Matrix (Placeholder)")
-    st.caption("A confusion matrix will be displayed here once model training is complete.")
+        # ── Try It: Predict Difficulty ──
+        st.subheader("🔮 Try It — Predict Question Difficulty")
+        user_question = st.text_area(
+            "Enter a question to predict its difficulty:",
+            placeholder="e.g. How do I reverse a linked list in Python?",
+            height=100,
+        )
 
-    # Show a sample confusion matrix placeholder
-    fig, ax = plt.subplots(figsize=(5, 4))
-    sample_cm = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
-    ax.imshow(sample_cm, cmap="Blues", interpolation="nearest")
-    ax.set_title("Logistic Regression")
-    ax.set_xlabel("Predicted")
-    ax.set_ylabel("Actual")
-    ax.set_xticks([0, 1, 2])
-    ax.set_yticks([0, 1, 2])
-    ax.set_xticklabels(["Easy", "Medium", "Hard"])
-    ax.set_yticklabels(["Easy", "Medium", "Hard"])
-    for i in range(3):
-        for j in range(3):
-            ax.text(j, i, str(sample_cm[i, j]), ha="center", va="center", fontsize=12)
-    plt.tight_layout()
-    st.pyplot(fig)
+        if st.button("Predict Difficulty", type="primary"):
+            if user_question.strip():
+                cleaned = clean_text_pipeline(user_question)
+                q_tfidf = tfidf_vec.transform([cleaned])
+                prediction = model.predict(q_tfidf)[0]
+                probabilities = model.predict_proba(q_tfidf)[0]
 
-    st.markdown("---")
-    st.info("💡 **Next Steps**: Train the Logistic Regression model using the uploaded data and TF-IDF features, then update this page with real evaluation results.")
+                # Color map for difficulty
+                color_map = {"Easy": "#2ecc71", "Medium": "#f39c12", "Hard": "#e74c3c"}
+                emoji_map = {"Easy": "🟢", "Medium": "🟡", "Hard": "🔴"}
+
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, {color_map.get(prediction, '#667eea')}22, {color_map.get(prediction, '#667eea')}44);
+                    padding: 1.5rem; border-radius: 12px; border-left: 5px solid {color_map.get(prediction, '#667eea')};
+                    margin: 1rem 0;">
+                    <h3 style="margin:0">{emoji_map.get(prediction, '')} Predicted Difficulty: {prediction}</h3>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Show confidence per class
+                prob_df = pd.DataFrame({
+                    "Difficulty": model.classes_,
+                    "Confidence": [f"{p:.1%}" for p in probabilities],
+                })
+                st.table(prob_df)
+            else:
+                st.warning("Please enter a question first.")
+
+        st.markdown("---")
+
+        # ── Model Info ──
+        st.subheader("📊 Model Information")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Model", "Logistic Regression")
+        with col2:
+            st.metric("Features", f"{len(tfidf_vec.get_feature_names_out())} TF-IDF")
+        with col3:
+            st.metric("Classes", ", ".join(model.classes_))
+
+        st.markdown("---")
+        st.info("💡 Upload your data on the **Upload Data** page to see difficulty analysis and student performance insights.")
+
+    else:
+        st.warning("⚠️ No saved model found. Please train and save the model from the notebook first.")
+        st.caption(f"Expected model at: `{MODEL_PATH}` and vectorizer at: `{VECTORIZER_PATH}`")
 
 
 st.sidebar.markdown("---")
