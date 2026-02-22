@@ -390,3 +390,59 @@ elif page == "📈 Visualizations":
 
     else:
         st.info("👈 Please upload questions data first from the **Upload Data** page.")
+
+
+# ══════════════════════════════════════════════
+# PAGE: Model Evaluation
+# ══════════════════════════════════════════════
+elif page == "🤖 Model Evaluation":
+    st.markdown('<p class="main-header">🤖 Model Evaluation</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Summary of ML model performance for question difficulty prediction.</p>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="card">
+        <strong>Model Used</strong><br/>
+        <span style="color:#666">Logistic Regression classifier trained on TF-IDF features extracted from question text.</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # Placeholder model metrics (these would come from saved model results)
+    st.subheader("📊 Logistic Regression Metrics")
+    st.caption("These are placeholder values — replace with real metrics once the model is trained.")
+
+    metrics_lr = pd.DataFrame({
+        "Metric": ["Accuracy", "Precision (Macro)", "Recall (Macro)", "F1-Score (Macro)"],
+        "Value": ["--", "--", "--", "--"],
+    })
+    st.table(metrics_lr)
+
+    st.markdown("---")
+
+    st.subheader("🔄 Confusion Matrix (Placeholder)")
+    st.caption("A confusion matrix will be displayed here once model training is complete.")
+
+    # Show a sample confusion matrix placeholder
+    fig, ax = plt.subplots(figsize=(5, 4))
+    sample_cm = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    ax.imshow(sample_cm, cmap="Blues", interpolation="nearest")
+    ax.set_title("Logistic Regression")
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    ax.set_xticks([0, 1, 2])
+    ax.set_yticks([0, 1, 2])
+    ax.set_xticklabels(["Easy", "Medium", "Hard"])
+    ax.set_yticklabels(["Easy", "Medium", "Hard"])
+    for i in range(3):
+        for j in range(3):
+            ax.text(j, i, str(sample_cm[i, j]), ha="center", va="center", fontsize=12)
+    plt.tight_layout()
+    st.pyplot(fig)
+
+    st.markdown("---")
+    st.info("💡 **Next Steps**: Train the Logistic Regression model using the uploaded data and TF-IDF features, then update this page with real evaluation results.")
+
+
+st.sidebar.markdown("---")
+st.sidebar.caption("Intelligent Exam Question Analysis System")
