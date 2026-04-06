@@ -7,8 +7,12 @@ import os
 import re
 import html
 import json
+import sys
+sys.path.append("src")
+
 from bs4 import BeautifulSoup
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from agents.analyzer import analyze_difficulty
 
 import nltk
 from nltk.corpus import stopwords
@@ -265,6 +269,8 @@ elif page == "📊 Difficulty Analysis":
                 },
             }
             st.session_state.difficulty_distribution = difficulty_distribution
+            problems = analyze_difficulty(difficulty_distribution)
+            st.session_state.analysis_problems = problems
 
             # Show metrics
             col1, col2, col3, col4 = st.columns(4)
@@ -652,3 +658,10 @@ elif page == "🤖 Model Evaluation":
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Intelligent Exam Question Analysis System")
+
+st.markdown("---")
+st.subheader("AI Analysis (Agent 1)")
+
+if "analysis_problems" in st.session_state:
+    for p in st.session_state.analysis_problems:
+        st.warning(f"{p}")
