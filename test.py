@@ -2,9 +2,9 @@ from src.agents.analyzer import analyze_difficulty
 
 # Simulate your app output
 test_input = {
-    "Easy": 10,
-    "Medium": 20,
-    "Hard": 70,
+    "Easy": 45,
+    "Medium": 25,
+    "Hard": 30,
     "total": 100
 }
 

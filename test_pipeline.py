@@ -7,19 +7,19 @@ from agents.retriever import run_retriever_agent
 
 state = {
     "difficulty": {
-        "Easy": 10,
-        "Medium": 20,
-        "Hard": 70,
+        "Easy": 45,
+        "Medium": 25,
+        "Hard": 30,
         "total": 100
     }
 }
 
 # Agent 1 runs first
-state = run_analyzer_agent(state)
-print("Agent 1 Problems:", state["problems"])
+agent_1 = run_analyzer_agent(state)
+print("Agent 1 Problems:", agent_1["problems"])
 
 # Agent 2 runs second
-state = run_retriever_agent(state)
+agent_2 = run_retriever_agent(state)
 print("\nAgent 2 Principles:")
-for p in state["principles"]:
+for p in agent_2["principles"]:
     print(f"  • {p}")
