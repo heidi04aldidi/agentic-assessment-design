@@ -85,6 +85,7 @@ page = st.sidebar.radio(
         "👨‍🎓 Student Performance",
         "📈 Visualizations",
         "🤖 Model Evaluation",
+        "👩‍🏫 Assessment Assistant",
     ],
 )
 
@@ -654,6 +655,81 @@ elif page == "🤖 Model Evaluation":
     else:
         st.warning("⚠️ No saved model found. Please train and save the model from the notebook first.")
         st.caption(f"Expected model at: `{MODEL_PATH}` and vectorizer at: `{VECTORIZER_PATH}`")
+
+
+# ══════════════════════════════════════════════
+# PAGE: Assessment Assistant
+# ══════════════════════════════════════════════
+elif page == "👩‍🏫 Assessment Assistant":
+    st.markdown('<p class="main-header">👩‍🏫 Assessment Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">AI-powered advisor to assess exam difficulty and provide improvement recommendations.</p>', unsafe_allow_html=True)
+
+    st.info("💡 **Milestone 2 Agentic Workflow**")
+    
+    if st.button("Run AI Analysis", type="primary"):
+        import time
+        
+        # Simulate LangGraph Dummy Steps
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        status_text.text("Analyzing difficulty distribution... (Agent 1: Analyzer)")
+        time.sleep(1.0)
+        progress_bar.progress(25)
+        
+        status_text.text("Retrieving teaching principles... (Agent 2: Retriever)")
+        time.sleep(1.0)
+        progress_bar.progress(50)
+        
+        status_text.text("Generating recommendations... (Agent 3: Recommender)")
+        time.sleep(1.0)
+        progress_bar.progress(75)
+        
+        status_text.text("Formatting structured report... (Agent 4: Reporter)")
+        time.sleep(1.0)
+        progress_bar.progress(100)
+        status_text.success("Analysis Complete!")
+        
+        try:
+            from src.agents.reporter import generate_report
+            from src.utils.pdf_export import create_pdf_report
+            
+            dummy_state = {
+                "difficulty": {"Easy": "15%", "Medium": "25%", "Hard": "60%"},
+                "problems": [
+                    "60% of questions are Hard, indicating the exam may be too difficult.",
+                    "Low average score across hard questions suggests students are struggling with complex reasoning.",
+                    "Lack of easy questions may reduce student confidence early in the exam."
+                ],
+                "principles": [
+                    "A well-balanced exam should ideally have 30% Easy, 40% Medium, and 30% Hard questions.",
+                    "Assessments should begin with easier questions to build confidence.",
+                    "Bloom's Taxonomy suggests evaluating a mix of recall, understanding, and application."
+                ],
+                "recommendations": [
+                    "Replace 3-5 Hard questions with Easy recall questions on foundational concepts.",
+                    "Ensure that complex questions are broken down into smaller, progressive sub-questions.",
+                    "Review the hardest questions to ensure they are testing intended concepts, not just reading comprehension."
+                ]
+            }
+            
+            report_text = generate_report(dummy_state)
+            pdf_bytes = create_pdf_report(report_text)
+            
+            st.markdown("---")
+            st.subheader("📄 Generated Assessment Report")
+            
+            with st.expander("View Full Report", expanded=True):
+                st.markdown(report_text)
+                
+            st.download_button(
+                label="⬇️ Download PDF Report",
+                data=pdf_bytes,
+                file_name="Assessment_Report.pdf",
+                mime="application/pdf"
+            )
+        except Exception as e:
+            st.error(f"Error executing report generation: {str(e)}")
 
 
 st.sidebar.markdown("---")
