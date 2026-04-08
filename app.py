@@ -90,7 +90,8 @@ page = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info("**Milestone 1** – ML-Based Exam Question Analytics")
+st.sidebar.success("✅ **Milestone 1** — ML Analytics")
+st.sidebar.success("✅ **Milestone 2** — Agentic AI Assistant")
 
 # ──────────────────────────────────────────────
 # Session State for uploaded data
@@ -203,7 +204,7 @@ elif page == "📤 Upload Data":
         st.caption("Expected columns: `Id`, `Title`, `Body`, `Score`, `Tags` (or similar)")
         questions_file = st.file_uploader("Upload Questions CSV", type=["csv"], key="q_upload")
         if questions_file is not None:
-            st.session_state.questions_df = pd.read_csv(questions_file, encoding="latin1", nrows=5000)
+            st.session_state.questions_df = pd.read_csv(questions_file, encoding="latin1", nrows=5000, on_bad_lines="skip")
             st.success(f"✅ Loaded {len(st.session_state.questions_df)} questions!")
             st.dataframe(st.session_state.questions_df.head(10), use_container_width=True)
 
@@ -212,7 +213,7 @@ elif page == "📤 Upload Data":
         st.caption("Expected columns: `Id`, `ParentId`, `Body`, `Score` (or similar)")
         responses_file = st.file_uploader("Upload Responses CSV", type=["csv"], key="r_upload")
         if responses_file is not None:
-            st.session_state.responses_df = pd.read_csv(responses_file, encoding="latin1", nrows=5000)
+            st.session_state.responses_df = pd.read_csv(responses_file, encoding="latin1", nrows=5000, on_bad_lines="skip")
             st.success(f"✅ Loaded {len(st.session_state.responses_df)} responses!")
             st.dataframe(st.session_state.responses_df.head(10), use_container_width=True)
 
@@ -272,6 +273,16 @@ elif page == "📊 Difficulty Analysis":
             st.session_state.difficulty_distribution = difficulty_distribution
             problems = analyze_difficulty(difficulty_distribution)
             st.session_state.analysis_problems = problems
+
+            # Show inline problem warnings
+            if problems:
+                st.markdown("---")
+                st.subheader("⚠️ Identified Issues (Agent 1)")
+                for p in problems:
+                    st.warning(p)
+                st.info("👉 Go to **👩\u200d🏫 Assessment Assistant** to run the full AI pipeline and get recommendations.")
+            else:
+                st.success("✅ No issues detected — the exam appears well-balanced!")
 
             # Show metrics
             col1, col2, col3, col4 = st.columns(4)
@@ -345,6 +356,7 @@ elif page == "👨‍🎓 Student Performance":
             st.metric("Total Responses", len(df))
         with col2:
             if "Score" in df.columns:
+                df["Score"] = pd.to_numeric(df["Score"], errors="coerce")
                 st.metric("Average Score", f"{df['Score'].mean():.2f}")
 
         st.markdown("---")
@@ -661,83 +673,157 @@ elif page == "🤖 Model Evaluation":
 # PAGE: Assessment Assistant
 # ══════════════════════════════════════════════
 elif page == "👩‍🏫 Assessment Assistant":
-    st.markdown('<p class="main-header">👩‍🏫 Assessment Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">AI-powered advisor to assess exam difficulty and provide improvement recommendations.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">👩‍🏫 AI Assessment Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">4-agent AI pipeline: analyzes exam difficulty, retrieves pedagogical principles, generates structured improvement recommendations.</p>', unsafe_allow_html=True)
 
-    st.info("💡 **Milestone 2 Agentic Workflow**")
-    
-    if st.button("Run AI Analysis", type="primary"):
-        import time
-        
-        # Simulate LangGraph Dummy Steps
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
-        status_text.text("Analyzing difficulty distribution... (Agent 1: Analyzer)")
-        time.sleep(1.0)
-        progress_bar.progress(25)
-        
-        status_text.text("Retrieving teaching principles... (Agent 2: Retriever)")
-        time.sleep(1.0)
-        progress_bar.progress(50)
-        
-        status_text.text("Generating recommendations... (Agent 3: Recommender)")
-        time.sleep(1.0)
-        progress_bar.progress(75)
-        
-        status_text.text("Formatting structured report... (Agent 4: Reporter)")
-        time.sleep(1.0)
-        progress_bar.progress(100)
-        status_text.success("Analysis Complete!")
-        
+    # ── Pipeline diagram ──
+    with st.expander("ℹ️ How the pipeline works", expanded=False):
+        st.markdown("""
+        ```
+        difficulty_dict
+            → Agent 1: Analyzer    — detects difficulty imbalance problems
+            → Agent 2: Retriever   — RAG: finds relevant pedagogical principles
+            → Agent 3: Recommender — LLM (Gemini) generates 3 recommendations
+            → Agent 4: Reporter    — formats the structured Markdown report
+        ```
+        **LLM note:** Agent 3 uses Gemini 2.0 Flash. If the API key is unavailable or
+        quota is exceeded, it automatically falls back to rule-based recommendations
+        so the pipeline always completes.
+        """)
+
+    st.markdown("---")
+
+    # ── Input: use M1 data or manual sliders ──
+    st.subheader("📥 Step 1 — Difficulty Distribution Input")
+
+    has_m1_data = "difficulty_distribution" in st.session_state
+
+    if has_m1_data:
+        dist = st.session_state.difficulty_distribution
+        st.success("✅ Using difficulty data from **📊 Difficulty Analysis** (Milestone 1)")
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("🟢 Easy",   dist["Easy"],   f"{dist['percentages']['Easy']}%")
+        col2.metric("🟡 Medium", dist["Medium"], f"{dist['percentages']['Medium']}%")
+        col3.metric("🔴 Hard",   dist["Hard"],   f"{dist['percentages']['Hard']}%")
+        col4.metric("Total",     dist["total"])
+        difficulty_dict = {
+            "Easy":   dist["Easy"],
+            "Medium": dist["Medium"],
+            "Hard":   dist["Hard"],
+            "total":  dist["total"],
+        }
+    else:
+        st.info("📋 No uploaded data detected. Enter difficulty counts manually below, or upload a CSV on **📤 Upload Data** → **📊 Difficulty Analysis** first.")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            easy_count   = st.slider("🟢 Easy Questions",   0, 200, 10)
+        with col2:
+            medium_count = st.slider("🟡 Medium Questions", 0, 200, 20)
+        with col3:
+            hard_count   = st.slider("🔴 Hard Questions",   0, 200, 70)
+        total_count = max(easy_count + medium_count + hard_count, 1)
+        difficulty_dict = {
+            "Easy":   easy_count,
+            "Medium": medium_count,
+            "Hard":   hard_count,
+            "total":  total_count,
+        }
+        pct_easy = round(easy_count   / total_count * 100, 1)
+        pct_med  = round(medium_count / total_count * 100, 1)
+        pct_hard = round(hard_count   / total_count * 100, 1)
+        st.caption(f"Distribution: Easy {pct_easy}% | Medium {pct_med}% | Hard {pct_hard}%")
+
+    st.markdown("---")
+    st.subheader("🚀 Step 2 — Run the Pipeline")
+
+    if st.button("▶ Run AI Assessment Pipeline", type="primary"):
         try:
-            from src.agents.reporter import generate_report
-            from src.utils.pdf_export import create_pdf_report
-            
-            dummy_state = {
-                "difficulty": {"Easy": "15%", "Medium": "25%", "Hard": "60%"},
-                "problems": [
-                    "60% of questions are Hard, indicating the exam may be too difficult.",
-                    "Low average score across hard questions suggests students are struggling with complex reasoning.",
-                    "Lack of easy questions may reduce student confidence early in the exam."
-                ],
-                "principles": [
-                    "A well-balanced exam should ideally have 30% Easy, 40% Medium, and 30% Hard questions.",
-                    "Assessments should begin with easier questions to build confidence.",
-                    "Bloom's Taxonomy suggests evaluating a mix of recall, understanding, and application."
-                ],
-                "recommendations": [
-                    "Replace 3-5 Hard questions with Easy recall questions on foundational concepts.",
-                    "Ensure that complex questions are broken down into smaller, progressive sub-questions.",
-                    "Review the hardest questions to ensure they are testing intended concepts, not just reading comprehension."
-                ]
-            }
-            
-            report_text = generate_report(dummy_state)
-            pdf_bytes = create_pdf_report(report_text)
-            
-            st.markdown("---")
-            st.subheader("📄 Generated Assessment Report")
-            
-            with st.expander("View Full Report", expanded=True):
-                st.markdown(report_text)
-                
+            from agents.analyzer  import run_analyzer_agent
+            from agents.retriever import run_retriever_agent
+            from agents.recommend import recomend_agent
+            from agents.reporter  import generate_report
+
+            topic_analysis = {}
+            if "questions_df" in st.session_state and st.session_state.questions_df is not None:
+                qdf = st.session_state.questions_df
+                if "Title" in qdf.columns and "Score" in qdf.columns:
+                    qdf_sorted = qdf.sort_values(by="Score")
+                    # Grab lowest 3 and highest 2 scoring questions
+                    extremes = pd.concat([qdf_sorted.head(3), qdf_sorted.tail(2)]).drop_duplicates()
+                    for _, row in extremes.iterrows():
+                        topic_analysis[row["Title"]] = {
+                            "score": float(row["Score"]) if pd.notnull(row["Score"]) else 0.0, 
+                            "difficulty": row.get("Difficulty", "Unknown")
+                        }
+
+            state = {"difficulty": difficulty_dict, "topic_analysis": topic_analysis}
+
+            with st.status("🤖 Running 4-Agent Pipeline...", expanded=True) as pipeline_status:
+
+                st.write("**▶ Agent 1 — Analyzer:** Detecting difficulty problems...")
+                state = run_analyzer_agent(state)
+                problems = state.get("problems", [])
+                if problems:
+                    for p in problems:
+                        st.write(f"   ⚠️ {p}")
+                else:
+                    st.write("   ✅ No problems — exam appears well-balanced!")
+                st.write(f"   → **{len(problems)} problem(s) identified**")
+
+                st.write("**▶ Agent 2 — Retriever:** Fetching pedagogical principles via RAG...")
+                state = run_retriever_agent(state)
+                principles = state.get("principles", [])
+                for pr in principles:
+                    st.write(f"   📚 {pr[:90]}...")
+                st.write(f"   → **{len(principles)} principle(s) retrieved**")
+
+                st.write("**▶ Agent 3 — Recommender:** Generating improvement recommendations (LLM)...")
+                state = recomend_agent(state)
+                recs = state.get("recommendations", [])
+                st.write(f"   → **{len(recs)} recommendation(s) generated**")
+
+                st.write("**▶ Agent 4 — Reporter:** Formatting structured report...")
+                report_md = generate_report(state)
+                st.write("   → **Report ready!**")
+
+                pipeline_status.update(label="✅ Pipeline Complete!", state="complete", expanded=False)
+
+            st.session_state.last_report       = report_md
+            st.session_state.last_report_state = state
+
+        except Exception as e:
+            st.error(f"❌ Pipeline error: {e}")
+            st.exception(e)
+
+    # ── Display report if available ──
+    if "last_report" in st.session_state:
+        st.markdown("---")
+        st.subheader("📄 Step 3 — Generated Assessment Report")
+
+        # Summary metrics
+        if "last_report_state" in st.session_state:
+            s = st.session_state.last_report_state
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Problems Found",       len(s.get("problems", [])))
+            c2.metric("Principles Retrieved", len(s.get("principles", [])))
+            c3.metric("Recommendations",      len(s.get("recommendations", [])))
+
+        with st.expander("📋 View Full Report", expanded=True):
+            st.markdown(st.session_state.last_report)
+
+        # PDF download
+        try:
+            from utils.pdf_export import create_pdf_report
+            pdf_bytes = create_pdf_report(st.session_state.last_report)
             st.download_button(
                 label="⬇️ Download PDF Report",
                 data=pdf_bytes,
                 file_name="Assessment_Report.pdf",
-                mime="application/pdf"
+                mime="application/pdf",
             )
-        except Exception as e:
-            st.error(f"Error executing report generation: {str(e)}")
+        except Exception as pdf_err:
+            st.warning(f"PDF export unavailable: {pdf_err}")
 
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Intelligent Exam Question Analysis System")
-
-st.markdown("---")
-st.subheader("AI Analysis (Agent 1)")
-
-if "analysis_problems" in st.session_state:
-    for p in st.session_state.analysis_problems:
-        st.warning(f"{p}")
