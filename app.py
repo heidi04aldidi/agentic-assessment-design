@@ -1337,6 +1337,7 @@ elif page == "Assessment Assistant":
                 file_name="Assessment_Report.pdf",
                 mime="application/pdf",
             )
+            st.markdown("<div style='margin-bottom: 50px;'></div>", unsafe_allow_html=True)
         except Exception as pdf_err:
             st.warning(f"PDF export unavailable: {pdf_err}")
 
