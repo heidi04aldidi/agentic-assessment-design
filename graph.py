@@ -10,19 +10,24 @@ Pipeline flow:
       → generate_report      → markdown string  (returned, not written to state)
 """
 
+import sys
+import os
+
+# Ensure src/ is on the path so agent imports resolve correctly
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+
 from agents.analyzer  import run_analyzer_agent
 from agents.retriever import run_retriever_agent
 from agents.recommend import recommend_agent
 from agents.reporter  import generate_report
 
 
-def run_pipeline(difficulty_dict: dict, topic_analysis: dict = None) -> str:
+def run_pipeline(difficulty_dict: dict) -> str:
     """
     Run the full 4-agent assessment pipeline.
 
     Args:
         difficulty_dict: e.g. {"Easy": 10, "Medium": 20, "Hard": 70, "total": 100}
-        topic_analysis: Optional dict of topic-level performance data.
 
     Returns:
         A Markdown-formatted assessment quality report string.
@@ -30,7 +35,6 @@ def run_pipeline(difficulty_dict: dict, topic_analysis: dict = None) -> str:
     # Build initial state
     state = {
         "difficulty": difficulty_dict,
-        "topic_analysis": topic_analysis or {},
     }
 
     # Agent 1 — Analyze difficulty and identify problems

@@ -1235,7 +1235,7 @@ elif page == "Assessment Assistant":
         try:
             from agents.analyzer  import run_analyzer_agent
             from agents.retriever import run_retriever_agent
-            from agents.recommend import recomend_agent
+            from agents.recommend import recommend_agent
             from agents.reporter  import generate_report
 
             topic_analysis = {}
@@ -1268,7 +1268,7 @@ elif page == "Assessment Assistant":
                 st.write(f"  {len(principles)} principle(s) retrieved")
 
                 st.write("Agent 3 — Recommender: Generating recommendations via LLM…")
-                state = recomend_agent(state)
+                state = recommend_agent(state)
                 recs  = state.get("recommendations", [])
                 st.write(f"  {len(recs)} recommendation(s) generated")
 

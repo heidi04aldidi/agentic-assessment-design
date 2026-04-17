@@ -41,7 +41,7 @@ def _fallback_recommendations(problems: list, state: dict = None) -> list:
     return recs[:3]
 
 
-def recomend_agent(state: dict) -> dict:
+def recommend_agent(state: dict) -> dict:
     problems = state.get("problems", [])
     principles = state.get("principles", [])
     topic_analysis = state.get("topic_analysis", {})
