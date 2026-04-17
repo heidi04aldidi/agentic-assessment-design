@@ -39,8 +39,18 @@ Based on the provided metrics and AI analysis, the assessment has been evaluated
 - **Hard:** {get_pct("Hard")}
 - **Total Questions:** {total}
 
-## 3. Identified Learning Gaps & Exam Issues
 """
+    # Addition: Topic Analysis
+    if topic_analysis:
+        report_md += "## 3. Topic-Level Performance Data\n"
+        for topic, data in topic_analysis.items():
+            report_md += f"- **{topic}**: Score {data.get('score', 0)} ({data.get('difficulty', 'Unknown')})\n"
+        report_md += "\n"
+        section_num = 4
+    else:
+        section_num = 3
+
+    report_md += f"## {section_num}. Identified Learning Gaps & Exam Issues\n"
 
     # Section 3
     for p in problems:
