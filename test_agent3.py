@@ -1,4 +1,4 @@
-from src.agents.recommend import recomend_agent
+from src.agents.recommend import recommend_agent
 
 state = {
     "problems": [
@@ -13,5 +13,5 @@ state = {
     ]
 
 }
-final = recomend_agent(state)
+final = recommend_agent(state)
 print("Final recommendations:", final["recommendations"])
