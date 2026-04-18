@@ -24,16 +24,25 @@ def generate_report(state: dict) -> str:
         count = difficulty_dist.get(key, 0)
         return f"{count} ({count/total*100:.1f}%)" if total > 0 else f"{count} (0%)"
 
+    metadata = state.get("metadata", {})
+    avg_score = metadata.get("avg_student_score", "N/A")
+    total_resp = metadata.get("total_responses", 0)
+
     date_str = datetime.datetime.now().strftime("%B %d, %Y")
 
     # Section 1 & 2
     report_md = f"""# Assessment Quality Report
 *Generated on {date_str}*
 
-## 1. Assessment Quality Summary
+## 1. Executive Performance Summary
+- **Total Questions Analyzed:** {metadata.get('total_questions', total)}
+- **Average Student Score:** {avg_score} (from {total_resp} responses)
+- **Primary Concern:** {"Difficulty imbalance" if "difficulty" in (problems[0].lower() if problems else "") else "Content coverage"}
+
+## 2. Assessment Qualitative Analysis
 Based on the provided metrics and AI analysis, the assessment has been evaluated across multiple dimensions including difficulty balancing, topic coverage, and cognitive load. The findings highlight areas of improvement to ensure a fairer and more effective evaluation of student competencies.
 
-## 2. Question Difficulty Distribution
+## 3. Question Difficulty Distribution
 - **Easy:** {get_pct("Easy")}
 - **Medium:** {get_pct("Medium")}
 - **Hard:** {get_pct("Hard")}
@@ -42,13 +51,13 @@ Based on the provided metrics and AI analysis, the assessment has been evaluated
 """
     # Addition: Topic Analysis
     if topic_analysis:
-        report_md += "## 3. Topic-Level Performance Data\n"
+        report_md += "## 4. Topic-Level Performance Data\n"
         for topic, data in topic_analysis.items():
             report_md += f"- **{topic}**: Score {data.get('score', 0)} ({data.get('difficulty', 'Unknown')})\n"
         report_md += "\n"
-        section_num = 4
+        section_num = 5
     else:
-        section_num = 3
+        section_num = 4
 
     report_md += f"## {section_num}. Identified Learning Gaps & Exam Issues\n"
 
