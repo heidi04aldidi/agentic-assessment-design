@@ -1,6 +1,6 @@
 # Intelligent Exam Question Analysis & Agentic Assessment Design System
 
-> **Live App →** [https://agentic-assessment-design.streamlit.app](https://agentic-assessment-design.streamlit.app) *(Streamlit Community Cloud)*  
+> **Live App →** [https://exam-analysis.streamlit.app/](https://exam-analysis.streamlit.app/) *(Streamlit Community Cloud)*  
 > **GitHub →** [https://github.com/amitihere/agentic-assessment-design](https://github.com/amitihere/agentic-assessment-design)
 
 An AI-powered educational analytics platform that evaluates examination quality, predicts question difficulty, and assists educators in designing better assessments.  
@@ -98,7 +98,7 @@ An AI reasoning agent that:
 - Recommends question replacements
 - Provides structured improvement reports
 
-Instead of just showing charts, the system **explains what the instructor should do next**.
+Instead of just showing charts, the system **recommends what the instructor should do next**.
 
 ---
 

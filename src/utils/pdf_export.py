@@ -31,10 +31,15 @@ def _strip_markdown(text: str) -> str:
     return text
 
 
-def create_pdf_report(report_text: str) -> bytes:
+def create_pdf_report(report_text: str, state: dict = None) -> bytes:
     """
     Converts a Markdown-like report text into a PDF and returns its bytes.
     Uses fpdf2.
+
+    Args:
+        report_text: Markdown-formatted report string from the reporter agent.
+        state:       Optional pipeline state dict (passed for compatibility;
+                     all data is already embedded in report_text).
     """
     pdf = FPDF()
     pdf.set_margins(left=LEFT_MARGIN, top=TOP_MARGIN, right=RIGHT_MARGIN)
