@@ -2,6 +2,9 @@
 venv/
 .venv/
 
+# Raw dataset (too large for GitHub — download from Kaggle)
+data/raw/
+
 # Node (not needed for Python project)
 node_modules/
 package-lock.json
